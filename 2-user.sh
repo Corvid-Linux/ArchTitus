@@ -63,4 +63,14 @@ sleep 1
 konsave -a kde
 
 echo -e "\nDone!\n"
+git clone https://aur.archlinux.org/snapd.git
+cd snapd
+makepkg -si
+systemctl enable --now snapd.socket
+ln -s /var/lib/snapd/snap /snap
+snap install 1password
+snap install onlyoffice-desktopeditors
+snap install thunderbird
+snap install signal-desktop
+snap install powershell --classic
 exit
