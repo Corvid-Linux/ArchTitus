@@ -167,7 +167,6 @@ PKGS=(
 'python-psutil'
 'python-pyqt5'
 'python-pip'
-'qemu'
 'rsync'
 'sddm'
 'sddm-kcm'
@@ -185,8 +184,6 @@ PKGS=(
 'unzip'
 'usbutils'
 'vim'
-'virt-manager'
-'virt-viewer'
 'wget'
 'which'
 'wine-gecko'
@@ -244,8 +241,7 @@ then
 	passwd $username
 	cp -R /root/ArchTitus /home/$username/
     chown -R $username: /home/$username/ArchTitus
-	read -p "Please name your machine:" nameofmachine
-	echo $nameofmachine > /etc/hostname
+	echo corvid > /etc/hostname
 else
 	echo "You are already a user proceed with aur installs"
 fi
