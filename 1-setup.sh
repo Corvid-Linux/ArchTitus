@@ -7,17 +7,12 @@
 #  ██║  ██║██║  ██║╚██████╗██║  ██║   ██║   ██║   ██║   ╚██████╔╝███████║
 #  ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝   ╚═╝   ╚═╝   ╚═╝    ╚═════╝ ╚══════╝
 #-------------------------------------------------------------------------
-echo "--------------------------------------"
-echo "--          Network Setup           --"
-echo "--------------------------------------"
-pacman -S networkmanager dhclient --noconfirm --needed
-systemctl enable --now NetworkManager
-echo "-------------------------------------------------"
-echo "Setting up mirrors for optimal download          "
-echo "-------------------------------------------------"
-pacman -S --noconfirm pacman-contrib curl
-pacman -S --noconfirm reflector rsync
-cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.bak
+pacman -Sy curl
+curl -O https://blackarch.org/strap.sh
+echo d062038042c5f141755ea39dbd615e6ff9e23121 strap.sh | sha1sum -c
+chmod +x strap.sh
+./strap.sh
+pacman -Syu
 
 nc=$(grep -c ^processor /proc/cpuinfo)
 echo "You have " $nc" cores."
@@ -61,7 +56,6 @@ PKGS=(
 'xorg-drivers'
 'xorg-xkill'
 'xorg-xinit'
-'xterm'
 'plasma-desktop' # KDE Load second
 'alsa-plugins' # audio plugins
 'alsa-utils' # audio utils
@@ -83,16 +77,13 @@ PKGS=(
 'bridge-utils'
 'btrfs-progs'
 'celluloid' # video players
-'cmatrix'
 'code' # Visual Studio code
 'cronie'
-'cups'
 'dialog'
 'discover'
 'dolphin'
 'dosfstools'
 'dtc'
-'efibootmgr' # EFI boot
 'egl-wayland'
 'exfat-utils'
 'extra-cmake-modules'
@@ -105,10 +96,6 @@ PKGS=(
 'gcc'
 'gimp' # Photo editing
 'git'
-'gparted' # partition management
-'gptfdisk'
-'grub'
-'grub-customizer'
 'gst-libav'
 'gst-plugins-good'
 'gst-plugins-ugly'
@@ -179,16 +166,12 @@ PKGS=(
 'systemsettings'
 'terminus-font'
 'traceroute'
-'ufw'
 'unrar'
 'unzip'
 'usbutils'
 'vim'
 'wget'
 'which'
-'wine-gecko'
-'wine-mono'
-'winetricks'
 'xdg-desktop-portal-kde'
 'xdg-user-dirs'
 'zeroconf-ioslave'
@@ -202,47 +185,6 @@ for PKG in "${PKGS[@]}"; do
     echo "INSTALLING: ${PKG}"
     sudo pacman -S "$PKG" --noconfirm --needed
 done
-
-#
-# determine processor type and install microcode
-# 
-proc_type=$(lscpu | awk '/Vendor ID:/ {print $3}')
-case "$proc_type" in
-	GenuineIntel)
-		print "Installing Intel microcode"
-		pacman -S --noconfirm intel-ucode
-		proc_ucode=intel-ucode.img
-		;;
-	AuthenticAMD)
-		print "Installing AMD microcode"
-		pacman -S --noconfirm amd-ucode
-		proc_ucode=amd-ucode.img
-		;;
-esac	
-
-# Graphics Drivers find and install
-if lspci | grep -E "NVIDIA|GeForce"; then
-    pacman -S nvidia --noconfirm --needed
-	nvidia-xconfig
-elif lspci | grep -E "Radeon"; then
-    pacman -S xf86-video-amdgpu --noconfirm --needed
-elif lspci | grep -E "Integrated Graphics Controller"; then
-    pacman -S libva-intel-driver libvdpau-va-gl lib32-vulkan-intel vulkan-intel libva-intel-driver libva-utils --needed --noconfirm
-fi
-
 echo -e "\nDone!\n"
 if ! source install.conf; then
-	read -p "Please enter username:" username
-echo "username=$username" >> ${HOME}/ArchTitus/install.conf
-fi
-if [ $(whoami) = "root"  ];
-then
-    useradd -m -G wheel,libvirt -s /bin/bash $username 
-	passwd $username
-	cp -R /root/ArchTitus /home/$username/
-    chown -R $username: /home/$username/ArchTitus
-	echo corvid > /etc/hostname
-else
-	echo "You are already a user proceed with aur installs"
-fi
-
+echo "username=corvid" >> ${HOME}/ArchTitus/install.conf
